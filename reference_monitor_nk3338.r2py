@@ -59,13 +59,14 @@ class ABFile():
       self.Afile.writeat('SE',0)
     else:
       #log("Files already present")
-      self.Afile = openfile(self.Afn,False) 
-      if ('SE' == self.Afile.readat(None,0)):
-        #log("[+] Contents of existing A file were only SE")
+      self.Bfile = openfile(self.Bfn,False) 
+      if isValid(self.Bfile):
+      #if ('SE' == self.Afile.readat(None,0)):
+        #log("[+] Contents of existing B file valid")
         #log("[+] Using existing file")
-        self.Bfile = openfile(self.Bfn,create)
+        self.Afile = openfile(self.Afn,create)
         tmp = self.Afile.readat(None,0)
-        self.Bfile.writeat(tmp,0)
+        self.Afile.writeat(tmp,0)
         #pass
       else:
         #log("[!!!] Contents of existing A file not SE. Closing current one and creating new one")
