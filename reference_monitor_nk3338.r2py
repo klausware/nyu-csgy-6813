@@ -63,7 +63,10 @@ class ABFile():
       if ('SE' == self.Afile.readat(None,0)):
         #log("[+] Contents of existing A file were only SE")
         #log("[+] Using existing file")
-        pass
+        self.Bfile = openfile(self.Bfn,create)
+        tmp = self.Afile.readat(None,0)
+        self.Bfile.writeat(tmp,0)
+        #pass
       else:
         #log("[!!!] Contents of existing A file not SE. Closing current one and creating new one")
         self.Afile.close()
@@ -76,8 +79,7 @@ class ABFile():
 
 
   def writeat(self,data,offset):
-    # Write the requested data to the B file using the sandbox's writeat call
-    
+    # Write the requested data to the B file using the sandbox's writeat call  
     #
     mycontext['lock'].acquire(True)
     
@@ -198,3 +200,4 @@ CHILD_CONTEXT_DEF["ABopenfile"] = {TYPE:OBJC,ARGS:(str,bool),EXCP:Exception,RETU
 
 # Execute the user code
 secure_dispatch_module()
+
