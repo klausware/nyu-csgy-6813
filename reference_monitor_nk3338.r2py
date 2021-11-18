@@ -59,7 +59,8 @@ class ABFile():
       self.Afile.writeat('SE',0)
     else:
       #log("Files already present")
-      self.Afile = openfile(self.Afn,False) 
+      self.Afile = openfile(self.Afn,False)
+      self.Afile.writeat('SE',0) 
       if ('SE' == self.Afile.readat(None,0)):
         #log("[+] Contents of existing A file were only SE")
         #log("[+] Using existing file")
@@ -196,4 +197,3 @@ CHILD_CONTEXT_DEF["ABopenfile"] = {TYPE:OBJC,ARGS:(str,bool),EXCP:Exception,RETU
 
 # Execute the user code
 secure_dispatch_module()
-
