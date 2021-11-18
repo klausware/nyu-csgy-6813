@@ -39,7 +39,7 @@ class ABFile():
   def __init__(self,filename,create):
     # globals
     mycontext['debug'] = False   
-    
+    mycontext['lock'] = createlock()
     # local (per object) reference to the underlying file
     self.Afn = filename+'.a'
     self.Bfn = filename+'.b'
@@ -74,48 +74,50 @@ class ABFile():
         #log("[+] Fresh A file created")
       self.Bfile = openfile(self.Bfn,False)
 
-    self.Bfile.lock = createlock()
-    self.Afile.lock = createlock()
 
   def writeat(self,data,offset):
     # Write the requested data to the B file using the sandbox's writeat call
-    #self.Bfile.lock = createlock()
-    self.Bfile.lock.acquire(True)
+    
+    #
+    mycontext['lock'].acquire(True)
+    
     #log("[+] Acquired lock on B file")
     #log(self.Bfile.lock)
+    
     if isValidOffset(offset,data):
       self.Bfile.writeat(data,offset)
-      self.Bfile.lock.release()
+      mycontext['lock'].release()
     else:
-      self.Bfile.lock.release()
+      mycontext['lock'].release()
       #log("[!!!] Invalid offset specified")
   
   def readat(self,bytes,offset):
     # Read from the A file using the sandbox's readat...
     #self.Afile.lock = createlock()
-    self.Afile.lock.acquire(True)
+    mycontext['lock'].acquire(True)
     #log("[+] Acquired lock on A file")
     read_data = self.Afile.readat(bytes,offset)
-    self.Afile.lock.release()
+    mycontext['lock'].release()
     return read_data
 
   def close(self):
-    self.Afile.lock.acquire(True)
-    self.Bfile.lock.acquire(True)
+    mycontext['lock'].acquire(True)
+    
     if ((isValid(self.Afile)) and (isValid(self.Bfile))):
       tmp = self.Bfile.readat(None,0)
       self.Afile.writeat(tmp,0)
-      
+      mycontext['lock'].release()
     else:
       tmp = self.Afile.readat(None,0)
       self.Bfile.writeat(tmp,0)
       #log("[!!!] One or both files were deemed invalid")
-    
+      mycontext['lock'].release()
+
     self.Afile.close()
     self.Bfile.close()
     
-    self.Afile.lock.release()
-    self.Bfile.lock.release()
+    #self.Afile.lock.release()
+    #self.Bfile.lock.release()
 
 def ABopenfile(filename, create):
  return ABFile(filename,create)
