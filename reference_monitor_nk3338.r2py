@@ -1,0 +1,198 @@
+"""
+*************************
+===REFERENCE MONITOR====*
+*************************
+This security layer inadequately handles A/B storage for files in RepyV2.
+
+
+
+Note:
+    This security layer uses encasementlib.r2py, restrictions.default, repy.py and Python
+    Also you need to give it an application to run.
+    python repy.py restrictions.default encasementlib.r2py [security_layer].r2py [attack_program].r2py 
+    
+
+Currently verifies that:
+1. The A file starts with an S and ends with an E.
+2. The A file starting and ending characters are strictly uppercase.
+3. Whether the files already exist or not
+4. If the A file already exists, that it only contains SE
+5. If a new A file is created, then SE is written to it (under any circumstance)
+6. Read ops only happening against the A file
+7. Write ops only happening against the B file
+8. TODO: If B file not valid, then read from A file
+9. TODO: If B file is valid, then update A with new data
+10.TODO: If one file exists but not the other (i.e. rm testfile.a but not testfile.b)
+
+
+""" 
+TYPE="type"
+ARGS="args"
+RETURN="return"
+EXCP="exceptions"
+TARGET="target"
+FUNC="func"
+OBJC="objc"
+
+
+class ABFile():
+  def __init__(self,filename,create):
+    # globals
+    mycontext['debug'] = False   
+    
+    # local (per object) reference to the underlying file
+    self.Afn = filename+'.a'
+    self.Bfn = filename+'.b'
+
+    """
+    Added logic to this function that checks if the files already exist using the listfiles() function. If they are found, then I
+    just open them using the openfile() function by setting the create argument to False and don't write new data to the A file. If
+    they are not found, then open them using the openfile() function passsing True as the value for the create argument, and write SE
+    to the A file.
+    """
+
+    # make the files and add 'SE' to the readat file...
+    if create and ((not self.Afn in listfiles()) and (not self.Bfn in listfiles())):
+      #log("Files not found. Creating.")
+      self.Afile = openfile(self.Afn,create)
+      self.Bfile = openfile(self.Bfn,create)
+      self.Afile.writeat('SE',0)
+    else:
+      #log("Files already present")
+      self.Afile = openfile(self.Afn,False) 
+      if ('SE' == self.Afile.readat(None,0)):
+        #log("[+] Contents of existing A file were only SE")
+        #log("[+] Using existing file")
+        pass
+      else:
+        #log("[!!!] Contents of existing A file not SE. Closing current one and creating new one")
+        self.Afile.close()
+        #log("[+] Closed A File")
+        self.Afile = openfile(self.Afn,create)
+        #log("[+] Opened new A File")
+        self.Afile.writeat('SE',0)
+        #log("[+] Fresh A file created")
+      self.Bfile = openfile(self.Bfn,False)
+
+    self.Bfile.lock = createlock()
+    self.Afile.lock = createlock()
+
+  def writeat(self,data,offset):
+    # Write the requested data to the B file using the sandbox's writeat call
+    #self.Bfile.lock = createlock()
+    self.Bfile.lock.acquire(True)
+    #log("[+] Acquired lock on B file")
+    #log(self.Bfile.lock)
+    if isValidOffset(offset,data):
+      self.Bfile.writeat(data,offset)
+      self.Bfile.lock.release()
+    else:
+      self.Bfile.lock.release()
+      #log("[!!!] Invalid offset specified")
+  
+  def readat(self,bytes,offset):
+    # Read from the A file using the sandbox's readat...
+    #self.Afile.lock = createlock()
+    self.Afile.lock.acquire(True)
+    #log("[+] Acquired lock on A file")
+    read_data = self.Afile.readat(bytes,offset)
+    self.Afile.lock.release()
+    return read_data
+
+  def close(self):
+    self.Afile.lock.acquire(True)
+    self.Bfile.lock.acquire(True)
+    if ((isValid(self.Afile)) and (isValid(self.Bfile))):
+      tmp = self.Bfile.readat(None,0)
+      self.Afile.writeat(tmp,0)
+      
+    else:
+      tmp = self.Afile.readat(None,0)
+      self.Bfile.writeat(tmp,0)
+      #log("[!!!] One or both files were deemed invalid")
+    
+    self.Afile.close()
+    self.Bfile.close()
+    
+    self.Afile.lock.release()
+    self.Bfile.lock.release()
+
+def ABopenfile(filename, create):
+ return ABFile(filename,create)
+
+"""
+Define a new function for checking the validity of the file.
+
+Tracking the last character of the file was vexing because the readat function didn't seem to throw an outOfBounds EOF error until
+it was 2 indexes beyond the last character in the file which meant having to subtract 3 from the variable i in order to grab the
+last char. However, if the file was only comprised of say, 2 characters, then subtracting 3 would result in fetching the first
+character of the file.
+
+Therefore I needed to add a condition that checked the length of the file by looking at how large i was at the time of the exception.
+If it was at least 5 characters long, then I could safely subtract 3 from the index counter, i, and get the last character. But if it was
+anything less than 5 (i.e. 4) then the readat function seemingly stopped after reading the last character, plus 1 (as opposed to plus 2).
+Which meant I only  needed to subtract 2 from the index.
+
+EXAMPLE:
+If it was a 15 character long string (0-14 index) then the index counter makes it 1o 17 before the exception is caught.
+So I need to subtract 3 to get the last (15th) character, (14th index).
+
+But if it's a 2 character long string (i.e. just SE, 0-1 index) then the counter makes it to 3 before the exception is caught.
+So I need to subtract 2 to get to the 1th index (the last character, E)
+"""
+
+
+
+def isValid(file):
+ first_char = file.readat(1,0)
+ if (first_char == 'S'):
+  try:
+   i=0
+   while(True):
+    a = file.readat(1,i)
+    #log(i)
+    #log(a)
+    i = i + 1
+  except:
+   #log("Inside Except")
+   #log(i)
+   if(i>4):
+    last_char = file.readat(1,i-3)
+    if ( last_char == 'E'):
+     #log("[+] 1. File deemed valid")
+     return True
+    else:
+     #log("[!!!] 2. File deemed NOT valid")
+     #log("last char was found to be: " + last_char)
+     return False
+   else:
+    last_char = file.readat(1,i-2)
+    if (last_char == 'E'):
+     #log("[+] 3. File deemed valid")
+     return True
+    else:
+     #log("[!!!] 4. File deemed NOT valid")
+     #log("i was 4 or less")
+     #log("last char was found to be: " + last_char)
+     return False
+ 
+def isValidOffset(offset,data):
+ if offset < len(data):
+  return True
+ else:
+  return False
+ 
+
+# The code here sets up type checking and variable hiding for you.  You
+# should not need to change anything below here.
+sec_file_def = {"obj-type":ABFile,
+                "name":"ABFile",
+                "writeat":{"type":"func","args":(str,int),"exceptions":Exception,"return":(int,type(None)),"target":ABFile.writeat},
+                "readat":{"type":"func","args":((int,type(None)),(int)),"exceptions":Exception,"return":str,"target":ABFile.readat},
+                "close":{"type":"func","args":None,"exceptions":None,"return":(bool,type(None)),"target":ABFile.close}
+           }
+
+CHILD_CONTEXT_DEF["ABopenfile"] = {TYPE:OBJC,ARGS:(str,bool),EXCP:Exception,RETURN:sec_file_def,TARGET:ABopenfile}
+
+# Execute the user code
+secure_dispatch_module()
