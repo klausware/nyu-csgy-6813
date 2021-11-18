@@ -72,7 +72,7 @@ class ABFile():
         #log("[+] Opened new A File")
         self.Afile.writeat('SE',0)
         #log("[+] Fresh A file created")
-      self.Bfile = openfile(self.Bfn,False)
+        self.Bfile = openfile(self.Bfn,False)
 
 
   def writeat(self,data,offset):
