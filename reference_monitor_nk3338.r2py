@@ -35,17 +35,20 @@ FUNC="func"
 OBJC="objc"
 
 
+mycontext['lock'] = createlock()
+
 class ABFile():
   def __init__(self,filename,create):
     # globals
     mycontext['debug'] = False   
+    mycontext['lock'].acquire(True)
     
     # local (per object) reference to the underlying file
     self.Afn = filename+'.a'
     self.Bfn = filename+'.b'
     
-    self.Lock = createlock()
-    self.Lock.acquire(True)
+    #self.Lock = createlock()
+    #self.Lock.acquire(True)
     """
     Added logic to this function that checks if the files already exist using the listfiles() function. If they are found, then I
     just open them using the openfile() function by setting the create argument to False and don't write new data to the A file. If
@@ -81,7 +84,7 @@ class ABFile():
     else:
       pass 
     
-    self.Lock.release()
+    #self.Lock.release()
     
     """
       #log("Files already present")
@@ -108,22 +111,23 @@ class ABFile():
   def writeat(self,data,offset):
     # Write the requested data to the B file using the sandbox's writeat call
     
-    self.Lock.acquire(True)
+    #self.Lock.acquire(True)
     #log("[+] Acquired lock on B file")
     #log(self.Bfile.lock)
     if isValidOffset(offset,data):
       self.Bfile.writeat(data,offset)
-      self.Lock.release()
+      #self.Lock.release()
     else:
-      self.Lock.release()
+      pass
+      #self.Lock.release()
       #log("[!!!] Invalid offset specified")
   
   def readat(self,bytes,offset):
     # Read from the A file using the sandbox's readat...
-    self.Lock.acquire(True)
+    #self.Lock.acquire(True)
     #log("[+] Acquired lock on A file")
     read_data = self.Afile.readat(bytes,offset)
-    self.Lock.release()
+    #self.Lock.release()
     return read_data
 
   def close(self):
@@ -140,7 +144,7 @@ class ABFile():
     self.Afile.close()
     self.Bfile.close()
     
-    self.Lock.release()
+    mycontext['lock'].release()
 
 def ABopenfile(filename, create):
  return ABFile(filename,create)
@@ -221,4 +225,3 @@ CHILD_CONTEXT_DEF["ABopenfile"] = {TYPE:OBJC,ARGS:(str,bool),EXCP:Exception,RETU
 
 # Execute the user code
 secure_dispatch_module()
-
