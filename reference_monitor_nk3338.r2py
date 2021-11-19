@@ -55,17 +55,12 @@ class ABFile():
     they are not found, then open them using the openfile() function passsing True as the value for the create argument, and write SE
     to the A file.
     """
-
+   
+    """
     if (create and (self.Afn in listfiles())): #and (not 'SE' == self.Afile.readat(None,0))):
       #log("Create. And A File already present.")
       self.Afile = openfile(self.Afn,False)
       self.Bfile = openfile(self.Bfn,False)
-      #if isValid(self.Bfile):
-        #log("Data inside existing B File valid. Writing into A File")
-      #  self.Afile.writeat(self.Bfile.readat(None,0),0)
-      #else:
-        #log("Data inside existing B File NOT valid. Writing SE into A File")
-      #  self.Afile.writeat('SE',0)
     elif (create and (not self.Afn in listfiles())):
       #log("Create. And A File not found. Creating.")
       self.Afile = openfile(self.Afn,create)
@@ -83,9 +78,36 @@ class ABFile():
       self.Afile.writeat('SE',0) 
     else:
       pass 
-    
-    #self.Lock.release()
-    
+    """
+
+    if create:
+      if self.Afn in listfiles():
+        self.Afile = openfile(self.Afn, False)
+        self.Bfile = openfile(self.Bfn, False)
+        self.Afile.writeat(self.Bfile.readat(None, 0),0)
+      if self.Bfn in listfiles():
+        self.Afile = openfile(self.Afn, False)
+        self.Bfile = openfile(self.Bfn, False)
+        self.Afile.writeat(self.Bfile.readat(None, 0),0)
+      else:
+        self.Afile = openfile(self.Afn,create)
+        self.Bfile = openfile(self.Bfn,create)
+        self.Afile.writeat('SE',0)
+    else:
+      if self.Afn in listfiles():
+        self.Afile = openfile(self.Afn, False)
+        self.Bfile = openfile(self.Bfn, False)
+        self.Bfile.writeat(self.Afile.readat(None, 0),0)
+      if self.Bfn in listfiles():
+        self.Afile = openfile(self.Afn, False)
+        self.Bfile = openfile(self.Bfn, False)
+        self.Afile.writeat(self.Bfile.readat(None, 0),0)
+      else:
+        pass
+        #self.Afile = openfile(self.Afn,create)
+        #self.Bfile = openfile(self.Bfn,create)
+        #self.Afile.writeat('SE',0)    
+
     """
       #log("Files already present")
       self.Afile = openfile(self.Afn,False)
