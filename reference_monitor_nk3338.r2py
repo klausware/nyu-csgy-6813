@@ -113,8 +113,6 @@ class ABFile():
     if isValidOffset(offset,data):
       self.Bfile.writeat(data,offset) 
     else:
-      self.Bfile.close()
-      self.Afile.close()
       pass
       #log("[!!!] Invalid offset specified")
   
