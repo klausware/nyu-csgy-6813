@@ -64,6 +64,8 @@ class ABFile():
       lengthOfBFile = len(readB)
       if tmp[0] == 'S' and tmp[(lengthOfBFile) -1] == 'E':
         self.Afile.writeat(tmp,0)
+      else:
+        self.BFile.close() 
     elif (create and (not self.Afn in listfiles())):
       #log("Create. And A File not found. Creating.")
       self.Afile = openfile(self.Afn,create)
@@ -226,4 +228,3 @@ CHILD_CONTEXT_DEF["ABopenfile"] = {TYPE:OBJC,ARGS:(str,bool),EXCP:Exception,RETU
 
 # Execute the user code
 secure_dispatch_module()
-
