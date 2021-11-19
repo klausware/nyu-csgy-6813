@@ -64,6 +64,8 @@ class ABFile():
       lengthOfBFile = len(tmp)
       if tmp[0] == 'S' and tmp[(lengthOfBFile) -1] == 'E':
         self.Afile.writeat(tmp,0)
+      elif tmp[0] == ' ':
+        self.BFile.close()
       else:
         self.BFile.close() 
     elif (create and (not self.Afn in listfiles())):
