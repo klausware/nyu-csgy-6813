@@ -111,11 +111,10 @@ class ABFile():
     tmp = self.Bfile.readat(None,0)
     lengthOfBFile = len(tmp)
     if isValidOffset(offset,data):
-      self.Bfile.writeat(data,offset)
-    elif tmp[0] == " ":
-      self.Bfile.close() 
+      self.Bfile.writeat(data,offset) 
     else:
-      pass
+      self.Bfile.close()
+      self.Afile.close()
       #log("[!!!] Invalid offset specified")
   
   def readat(self,bytes,offset):
