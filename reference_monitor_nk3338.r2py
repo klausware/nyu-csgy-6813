@@ -141,14 +141,10 @@ class ABFile():
     if ((isValid(self.Afile)) and (isValid(self.Bfile))):
       tmp = self.Bfile.readat(None,0)
       self.Afile.writeat(tmp,0)
-      self.Afile.close()
-      self.Bfile.close()
       
     else:
       tmp = self.Afile.readat(None,0)
       self.Bfile.writeat(tmp,0)
-      self.Afile.close()
-      self.Bfile.close()
       #log("[!!!] One or both files were deemed invalid")
     
     self.Afile.close()
