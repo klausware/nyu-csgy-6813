@@ -43,7 +43,9 @@ class ABFile():
     # local (per object) reference to the underlying file
     self.Afn = filename+'.a'
     self.Bfn = filename+'.b'
-
+    
+    self.Lock = createlock()
+    self.Lock.acquire(True)
     """
     Added logic to this function that checks if the files already exist using the listfiles() function. If they are found, then I
     just open them using the openfile() function by setting the create argument to False and don't write new data to the A file. If
@@ -51,13 +53,27 @@ class ABFile():
     to the A file.
     """
 
-    # make the files and add 'SE' to the readat file...
+    if (self.Afn in listfiles()): #and (not 'SE' == self.Afile.readat(None,0))):
+      #log("A File already present. Removing, and recreating")
+      removefile(self.Afn)
+      self.Afile = openfile(self.Afn,create)
+      self.Afile.writeat('SE',0)
+      
+      
+    if (self.Bfn in listfiles()): #and ('SE' == self.Afile.readat(None,0))):
+      #log("B File already present. Removing")
+      self.Bfile = openfile(self.Bfn,create)
+      
+
     if create and ((not self.Afn in listfiles()) and (not self.Bfn in listfiles())):
       #log("Files not found. Creating.")
       self.Afile = openfile(self.Afn,create)
       self.Bfile = openfile(self.Bfn,create)
       self.Afile.writeat('SE',0)
-    else:
+    
+    self.Lock.release()
+    
+    """
       #log("Files already present")
       self.Afile = openfile(self.Afn,False)
       self.Afile.writeat('SE',0) 
@@ -77,32 +93,31 @@ class ABFile():
 
     self.Bfile.lock = createlock()
     self.Afile.lock = createlock()
+    """
 
   def writeat(self,data,offset):
     # Write the requested data to the B file using the sandbox's writeat call
-    #self.Bfile.lock = createlock()
-    self.Bfile.lock.acquire(True)
+    
+    self.Lock.acquire(True)
     #log("[+] Acquired lock on B file")
     #log(self.Bfile.lock)
     if isValidOffset(offset,data):
       self.Bfile.writeat(data,offset)
-      self.Bfile.lock.release()
+      self.Lock.release()
     else:
-      self.Bfile.lock.release()
+      self.Lock.release()
       #log("[!!!] Invalid offset specified")
   
   def readat(self,bytes,offset):
     # Read from the A file using the sandbox's readat...
-    #self.Afile.lock = createlock()
-    self.Afile.lock.acquire(True)
+    self.Lock.acquire(True)
     #log("[+] Acquired lock on A file")
     read_data = self.Afile.readat(bytes,offset)
-    self.Afile.lock.release()
+    self.Lock.release()
     return read_data
 
   def close(self):
-    self.Afile.lock.acquire(True)
-    self.Bfile.lock.acquire(True)
+    self.Lock.acquire(True)
     if ((isValid(self.Afile)) and (isValid(self.Bfile))):
       tmp = self.Bfile.readat(None,0)
       self.Afile.writeat(tmp,0)
@@ -115,8 +130,7 @@ class ABFile():
     self.Afile.close()
     self.Bfile.close()
     
-    self.Afile.lock.release()
-    self.Bfile.lock.release()
+    self.Lock.release()
 
 def ABopenfile(filename, create):
  return ABFile(filename,create)
@@ -197,3 +211,5 @@ CHILD_CONTEXT_DEF["ABopenfile"] = {TYPE:OBJC,ARGS:(str,bool),EXCP:Exception,RETU
 
 # Execute the user code
 secure_dispatch_module()
+
+
