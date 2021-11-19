@@ -64,8 +64,6 @@ class ABFile():
       lengthOfBFile = len(tmp)
       if tmp[0] == 'S' and tmp[(lengthOfBFile) -1] == 'E':
         self.Afile.writeat(tmp,0)
-      elif tmp[0] == ' ':
-        self.BFile.close()
       else:
         self.BFile.close() 
     elif (create and (not self.Afn in listfiles())):
@@ -110,15 +108,14 @@ class ABFile():
 
   def writeat(self,data,offset):
     # Write the requested data to the B file using the sandbox's writeat call
-    
-    #self.Lock.acquire(True)
-    #log("[+] Acquired lock on B file")
-    #log(self.Bfile.lock)
+    tmp = self.Bfile.readat(None,0)
+    lengthOfBFile = len(tmp)
     if isValidOffset(offset,data):
       self.Bfile.writeat(data,offset)
-      #self.Lock.release()
+    elif tmp[0] == " ":
+      self.Bfile.close() 
     else:
-      pass
+      self.Bfile.close()
       #self.Lock.release()
       #log("[!!!] Invalid offset specified")
   
