@@ -60,7 +60,8 @@ class ABFile():
       #log("Create. And A File already present.")
       self.Afile = openfile(self.Afn,False)
       self.Bfile = openfile(self.Bfn,False)
-      self.Afile.writeat(self.Bfile.readat(None, 0),0)
+      tmp = self.Bfile.readat(None,0)
+      self.Afile.writeat(tmp,0)
     elif (create and (not self.Afn in listfiles())):
       #log("Create. And A File not found. Creating.")
       self.Afile = openfile(self.Afn,create)
@@ -223,3 +224,4 @@ CHILD_CONTEXT_DEF["ABopenfile"] = {TYPE:OBJC,ARGS:(str,bool),EXCP:Exception,RETU
 
 # Execute the user code
 secure_dispatch_module()
+
