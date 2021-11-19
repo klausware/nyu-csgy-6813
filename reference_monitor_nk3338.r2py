@@ -53,23 +53,33 @@ class ABFile():
     to the A file.
     """
 
-    if (self.Afn in listfiles()): #and (not 'SE' == self.Afile.readat(None,0))):
-      #log("A File already present. Removing, and recreating")
-      removefile(self.Afn)
+    if (create and (self.Afn in listfiles())): #and (not 'SE' == self.Afile.readat(None,0))):
+      #log("Create. And A File already present.")
+      self.Afile = openfile(self.Afn,False)
+      self.Bfile = openfile(self.Bfn,False)
+      #if isValid(self.Bfile):
+        #log("Data inside existing B File valid. Writing into A File")
+      #  self.Afile.writeat(self.Bfile.readat(None,0),0)
+      #else:
+        #log("Data inside existing B File NOT valid. Writing SE into A File")
+      #  self.Afile.writeat('SE',0)
+    elif (create and (not self.Afn in listfiles())):
+      #log("Create. And A File not found. Creating.")
       self.Afile = openfile(self.Afn,create)
-      self.Afile.writeat('SE',0)
-      
-      
-    if (self.Bfn in listfiles()): #and ('SE' == self.Afile.readat(None,0))):
-      #log("B File already present. Removing")
       self.Bfile = openfile(self.Bfn,create)
-      
+      self.Afile.writeat('SE',0)
 
-    if create and ((not self.Afn in listfiles()) and (not self.Bfn in listfiles())):
-      #log("Files not found. Creating.")
+    if (not create and (self.Afn in listfiles())):
+      #log("Not Create. And A File already present.")
+      self.Afile = openfile(self.Afn,False)
+      self.Bfile = openfile(self.Bfn,False)
+      self.Bfile.writeat(self.Afile.readat(None,0),0)
+    elif ((not create) and (not self.Afn in listfiles())):
+      #log("Not Create. And A File not found.")
       self.Afile = openfile(self.Afn,create)
-      self.Bfile = openfile(self.Bfn,create)
-      self.Afile.writeat('SE',0)
+      self.Afile.writeat('SE',0) 
+    else:
+      pass 
     
     self.Lock.release()
     
@@ -172,7 +182,7 @@ def isValid(file):
    #log("Inside Except")
    #log(i)
    if(i>4):
-    last_char = file.readat(1,i-3)
+    last_char = file.readat(1,i-2)
     if ( last_char == 'E'):
      #log("[+] 1. File deemed valid")
      return True
@@ -211,5 +221,4 @@ CHILD_CONTEXT_DEF["ABopenfile"] = {TYPE:OBJC,ARGS:(str,bool),EXCP:Exception,RETU
 
 # Execute the user code
 secure_dispatch_module()
-
 
