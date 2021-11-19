@@ -103,16 +103,17 @@ class ABFile():
 
   def writeat(self,data,offset):
     # Write the requested data to the B file using the sandbox's writeat call
-    
-    #self.Lock.acquire(True)
-    #log("[+] Acquired lock on B file")
-    #log(self.Bfile.lock)
-    if isValidOffset(offset,data):
+    tmp = self.Bfile.readat(None, 0)
+    if offset <= len(tmp) and offset >= 0:
       self.Bfile.writeat(data,offset)
-      #self.Lock.release()
     else:
       pass
+    
+    #if isValidOffset(offset,data):
+    #  self.Bfile.writeat(data,offset)
       #self.Lock.release()
+    #else:
+    #  pass
       #log("[!!!] Invalid offset specified")
   
   def readat(self,bytes,offset):
