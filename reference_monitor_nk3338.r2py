@@ -200,7 +200,7 @@ def isValid(file):
      return False
  
 def isValidOffset(offset,data):
- if offset < len(data):
+ if offset <= len(data) and offset >= 0:
   return True
  else:
   return False
