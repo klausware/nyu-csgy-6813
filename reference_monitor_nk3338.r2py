@@ -172,7 +172,7 @@ So I need to subtract 2 to get to the 1th index (the last character, E)
 
 def isValid(file):
  first_char = file.readat(1,0)
- if (first_char == 'S'):
+ if (first_char == 'S' and (not first_char == " ")):
   try:
    i=0
    while(True):
@@ -223,4 +223,3 @@ CHILD_CONTEXT_DEF["ABopenfile"] = {TYPE:OBJC,ARGS:(str,bool),EXCP:Exception,RETU
 
 # Execute the user code
 secure_dispatch_module()
-
