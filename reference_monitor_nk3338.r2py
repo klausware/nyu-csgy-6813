@@ -115,6 +115,7 @@ class ABFile():
     else:
       self.Bfile.close()
       self.Afile.close()
+      pass
       #log("[!!!] Invalid offset specified")
   
   def readat(self,bytes,offset):
