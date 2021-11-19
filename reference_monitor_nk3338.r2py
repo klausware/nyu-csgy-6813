@@ -115,8 +115,7 @@ class ABFile():
     elif tmp[0] == " ":
       self.Bfile.close() 
     else:
-      self.Bfile.close()
-      #self.Lock.release()
+      pass
       #log("[!!!] Invalid offset specified")
   
   def readat(self,bytes,offset):
