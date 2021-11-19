@@ -124,11 +124,18 @@ class ABFile():
   
   def readat(self,bytes,offset):
     # Read from the A file using the sandbox's readat...
-    #self.Lock.acquire(True)
     #log("[+] Acquired lock on A file")
-    read_data = self.Afile.readat(bytes,offset)
-    #self.Lock.release()
-    return read_data
+    lengthA = len(self.Afile.readat(None, offset))
+    if offset < 0:
+      pass
+    elif lengthA < 0:
+      pass
+    elif offset > lengthA:
+      pass
+    else:
+      return self.Afile.readat(bytes, offset)
+    #read_data = self.Afile.readat(bytes,offset)
+    #return read_data
 
   def close(self):
     #self.Lock.acquire(True)
@@ -225,3 +232,4 @@ CHILD_CONTEXT_DEF["ABopenfile"] = {TYPE:OBJC,ARGS:(str,bool),EXCP:Exception,RETU
 
 # Execute the user code
 secure_dispatch_module()
+
