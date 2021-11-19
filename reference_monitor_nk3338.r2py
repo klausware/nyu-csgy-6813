@@ -60,8 +60,8 @@ class ABFile():
       #log("Create. And A File already present.")
       self.Afile = openfile(self.Afn,False)
       self.Bfile = openfile(self.Bfn,False)
-      tmp = self.Bfile.readat(None,0)
-      self.Afile.writeat(tmp,0)
+      #tmp = self.Bfile.readat(None,0)
+      #self.Afile.writeat(tmp,0)
     elif (create and (not self.Afn in listfiles())):
       #log("Create. And A File not found. Creating.")
       self.Afile = openfile(self.Afn,create)
