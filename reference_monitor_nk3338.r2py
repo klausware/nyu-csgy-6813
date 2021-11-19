@@ -62,10 +62,10 @@ class ABFile():
       self.Bfile = openfile(self.Bfn,False)
       tmp = self.Bfile.readat(None,0)
       lengthOfBFile = len(readB)
-      if tmp[0] == 'S' and tmp[(lengthOfBFile) -1] == 'E':
-        self.Afile.writeat(tmp,0)
-      else:
-        self.BFile.close() 
+      #if tmp[0] == 'S' and tmp[(lengthOfBFile) -1] == 'E':
+      #  self.Afile.writeat(tmp,0)
+      #else:
+      #  self.BFile.close() 
     elif (create and (not self.Afn in listfiles())):
       #log("Create. And A File not found. Creating.")
       self.Afile = openfile(self.Afn,create)
