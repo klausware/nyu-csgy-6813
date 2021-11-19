@@ -132,13 +132,18 @@ class ABFile():
 
   def close(self):
     #self.Lock.acquire(True)
-    if ((isValid(self.Afile)) and (isValid(self.Bfile))):
+    if isValid(self.Bfile):
+      self.Afile.close()
+      self.Bfile.close()
       tmp = self.Bfile.readat(None,0)
-      self.Afile.writeat(tmp,0)
+      openfile(self.Afn, True).writeat(tmp, 0)
       
     else:
+      self.Afile.close()
+      self.Bfile.close()
       tmp = self.Afile.readat(None,0)
-      self.Bfile.writeat(tmp,0)
+      openfile(self.Afn, True).writeat(tmp, 0)
+
       #log("[!!!] One or both files were deemed invalid")
     
     self.Afile.close()
