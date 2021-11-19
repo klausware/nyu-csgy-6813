@@ -56,16 +56,16 @@ class ABFile():
     to the A file.
     """
 
-    if (create and (self.Afn in listfiles())): 
+    if (create and (self.Afn in listfiles())): #and (not 'SE' == self.Afile.readat(None,0))):
       #log("Create. And A File already present.")
       self.Afile = openfile(self.Afn,False)
       self.Bfile = openfile(self.Bfn,False)
-      tmp = self.Bfile.readat(None,0)
-      lengthOfBFile = len(tmp)
-      if tmp[0] == 'S' and tmp[(lengthOfBFile) -1] == 'E':
-        self.Afile.writeat(tmp,0)
-      else:
-        self.BFile.close() 
+      #if isValid(self.Bfile):
+        #log("Data inside existing B File valid. Writing into A File")
+      #  self.Afile.writeat(self.Bfile.readat(None,0),0)
+      #else:
+        #log("Data inside existing B File NOT valid. Writing SE into A File")
+      #  self.Afile.writeat('SE',0)
     elif (create and (not self.Afn in listfiles())):
       #log("Create. And A File not found. Creating.")
       self.Afile = openfile(self.Afn,create)
@@ -83,6 +83,8 @@ class ABFile():
       self.Afile.writeat('SE',0) 
     else:
       pass 
+    
+    #self.Lock.release()
     
     """
       #log("Files already present")
@@ -108,28 +110,28 @@ class ABFile():
 
   def writeat(self,data,offset):
     # Write the requested data to the B file using the sandbox's writeat call
+    
+    #self.Lock.acquire(True)
+    #log("[+] Acquired lock on B file")
+    #log(self.Bfile.lock)
     if isValidOffset(offset,data):
-      self.Bfile.writeat(data,offset) 
+      self.Bfile.writeat(data,offset)
+      #self.Lock.release()
     else:
       pass
+      #self.Lock.release()
       #log("[!!!] Invalid offset specified")
   
   def readat(self,bytes,offset):
     # Read from the A file using the sandbox's readat...
+    #self.Lock.acquire(True)
     #log("[+] Acquired lock on A file")
-    lengthA = len(self.Afile.readat(None, offset))
-    if offset < 0:
-      pass
-    elif lengthA < 0:
-      pass
-    elif offset > lengthA:
-      pass
-    else:
-      return self.Afile.readat(bytes, offset)
-    #read_data = self.Afile.readat(bytes,offset)
-    #return read_data
+    read_data = self.Afile.readat(bytes,offset)
+    #self.Lock.release()
+    return read_data
 
   def close(self):
+    #self.Lock.acquire(True)
     if ((isValid(self.Afile)) and (isValid(self.Bfile))):
       tmp = self.Bfile.readat(None,0)
       self.Afile.writeat(tmp,0)
@@ -141,6 +143,7 @@ class ABFile():
     
     self.Afile.close()
     self.Bfile.close()
+    
     mycontext['lock'].release()
 
 def ABopenfile(filename, create):
@@ -171,7 +174,7 @@ So I need to subtract 2 to get to the 1th index (the last character, E)
 
 def isValid(file):
  first_char = file.readat(1,0)
- if (first_char == 'S' and (not first_char == " ")):
+ if (first_char == 'S'):
   try:
    i=0
    while(True):
